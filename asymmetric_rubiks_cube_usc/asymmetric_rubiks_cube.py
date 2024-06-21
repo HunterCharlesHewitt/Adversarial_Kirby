@@ -1,7 +1,7 @@
 import datetime
 import pathlib
 import torch
-from rubiks_cube_usc.constants import ACTIONS_RANGE
+from asymmetric_rubiks_cube_usc.constants import ACTIONS_RANGE
 
 
 class MuZeroConfig:
@@ -39,7 +39,7 @@ class MuZeroConfig:
 
     def set_game_properties(self):
         self.muzero_player = 0  # Turn Muzero begins to play (0: MuZero plays first, 1: MuZero plays second)
-        self.opponent = None  # Hard coded agent that MuZero faces to assess his progress in multiplayer games. It doesn't influence training. None, "random" or "expert" if implemented in the Game class
+        self.opponent = "self"  # Hard coded agent that MuZero faces to assess his progress in multiplayer games. It doesn't influence training. None, "random" or "expert" if implemented in the Game class
         self.observation_shape = (6, 3, 3)
         self.action_space = ACTIONS_RANGE
         self.players = list(range(2))
