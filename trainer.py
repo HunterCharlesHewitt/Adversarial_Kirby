@@ -32,7 +32,8 @@ class Trainer:
 
         if "cuda" not in str(next(self.model.parameters()).device):
             print("You are not training on GPU.\n")
-
+        else:
+            print("You are training on GPU")
         # Initialize the optimizer
         if self.config.optimizer == "SGD":
             self.optimizer = torch.optim.SGD(

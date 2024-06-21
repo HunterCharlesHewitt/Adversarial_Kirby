@@ -1,7 +1,9 @@
-gym[classic_control]
-nevergrad
-numpy
-ray
-seaborn
-tensorboard
-torch
+gym==0.26.2
+matplotlib==3.7.5
+nevergrad==1.0.2
+numpy==1.24.4
+ray==2.10.0
+rubik_cube==0.0.2
+seaborn==0.13.2
+torch==2.3.1
+tensorboard==2.13.0
