@@ -1,3 +1,5 @@
+import random
+
 import numpy
 from rubik.cube import Cube
 
@@ -5,35 +7,59 @@ from games.abstract_game import AbstractGame
 from asymmetric_rubiks_cube_usc.constants import SOLVED_CUBE_STR, LEGAL_MOVES, ACTIONS_RANGE, MAX_NUM_STEPS, \
     DATE_AT_PROGRAM_START, FOLDER_PATH
 
+NUM_TO_UNSCRAMBLE = 40
+
 
 class Game(AbstractGame):
     def __init__(self, seed=None):
+        self.num_to_scramble = 20
         self.__set_new_game_state()
 
     def step(self, action):
+        # if unscrambler has taken too long
+        if self.step_num >= NUM_TO_UNSCRAMBLE + self.num_to_scramble:
+            if self.player == 1:
+                self.__switch_player()
+                return self.__finish_step(reward=0, is_game_finished=False)
+            else:
+                return self.__finish_step(reward=1000, is_game_finished=True)
+
         if self.player == 0:  # scrambler
-            if self.__has_unscrambler_made_mistake():
-                self.__log_failed_state()
-                return self.__finish_step(reward=1, is_game_finished=True)
             self.__perform_scramble(action)
-            if self.__state_has_already_been_visited():
-                return self.__finish_step(reward=-1, is_game_finished=False)
+            if self.state.is_solved():
+                return self.__finish_step(reward=-1000, is_game_finished=True)
+            if self.__scrambled_state_has_already_been_visited():
+                return self.__finish_step(reward=-100, is_game_finished=False)
+            return self.__finish_step(reward=1, is_game_finished=False)
+        else:  # unscrambler
+            self.__perform_unscramble(action)
+            if self.__unscrambled_state_has_already_been_visited():
+                return self.__finish_step(reward=-100, is_game_finished=False)
+            if self.state.is_solved():
+                self.__log_winning_state()
+                return self.__finish_step(reward=self.calculate_discounted_reward(), is_game_finished=True)
             return self.__finish_step(reward=0, is_game_finished=False)
 
-        else:  # unscrambler
-            self.unscramble_moves_list = [LEGAL_MOVES[action]] + self.unscramble_moves_list
-            if self.__has_unscrambler_made_mistake():
-                return self.__finish_step(reward=-1, is_game_finished=False)
-            if self.__has_game_exceeded_max_num_steps():
-                self.__log_winning_state()
-                return self.__finish_step(reward=1, is_game_finished=True)
-            return self.__finish_step(reward=1, is_game_finished=False)
+    def calculate_discounted_reward(self):
+        return 1000 / (max(1, self.step_num - (20 + self.num_to_scramble - 1)))
 
     def __finish_step(self, reward, is_game_finished):
-        self.__switch_player()
+        if self.player == 0:
+            self.scrambler_total_reward += reward
+            if self.scrambler_total_reward <= -400:
+                is_game_finished = True
+        else:
+            self.unscrambler_total_reward += reward
+            if self.unscrambler_total_reward <= -400:
+                is_game_finished = True
+
+        self.step_num += 1
+        if self.step_num == self.num_to_scramble:
+            self.player = 1
         return self.__cube_to_numpy_array(), reward, is_game_finished
 
     def reset(self):
+        self.num_to_scramble = random.randint(5, 200)
         if not self.state.is_solved():
             self.__log_failed_state()
         self.__set_new_game_state()
@@ -55,31 +81,33 @@ class Game(AbstractGame):
             print("Wrong input, try again")
 
     def to_play(self):
-        return 1 ^ self.player
+        return self.player
 
     def legal_actions(self):
         return ACTIONS_RANGE
 
     def __set_new_game_state(self):
-        self.unscramble_moves_list = []
+        self.unscramble_moves = ""
         self.scramble_moves = ""
-        self.previous_cube_states = []
+        self.scrambled_cube_states = []
+        self.unscrambled_cube_states = []
         self.player = 0
+        self.scrambler_total_reward = 0
+        self.unscrambler_total_reward = 0
         self.state = Cube(SOLVED_CUBE_STR)
+        self.step_num = 0
 
     def __has_game_exceeded_max_num_steps(self):
         return len(self.scramble_moves) >= MAX_NUM_STEPS
 
-    def __has_unscrambler_made_mistake(self):
-        if len(self.unscramble_moves_list) > 0:
-            temp_cube = Cube(remove_all_whitespace(self.state))
-            temp_cube.sequence(" ".join(move for move in self.unscramble_moves_list))
-            return not temp_cube.is_solved()
-        return False
-
     def __perform_scramble(self, action):
-        self.previous_cube_states.append(str(self.state))
         self.scramble_moves += LEGAL_MOVES[action]
+        self.scrambled_cube_states.append(str(self.state))
+        self.state.sequence(LEGAL_MOVES[action])
+
+    def __perform_unscramble(self, action):
+        self.unscramble_moves += LEGAL_MOVES[action]
+        self.unscrambled_cube_states.append(str(self.state))
         self.state.sequence(LEGAL_MOVES[action])
 
     def __log_winning_state(self):
@@ -93,7 +121,7 @@ class Game(AbstractGame):
 
     def __log_moves_taken(self, myfile):
         myfile.write(
-            f"Scramble Moves: {self.scramble_moves} - Unscramble Moves: {self.unscramble_moves_list} \n")
+            f"Scramble Moves: {self.scramble_moves} - Unscramble Moves: {self.unscramble_moves} \n")
 
     def __cube_to_numpy_array(self):
         c = "".join(str(self.state).split())
@@ -106,8 +134,11 @@ class Game(AbstractGame):
         bottom_face = numpy.array([[c[45], c[46], c[47]], [c[48], c[49], c[50]], [c[51], c[52], c[53]]])
         return numpy.array([top_face, left_face, front_face, right_face, back_face, bottom_face])
 
-    def __state_has_already_been_visited(self):
-        return str(self.state) in self.previous_cube_states
+    def __scrambled_state_has_already_been_visited(self):
+        return str(self.state) in self.scrambled_cube_states
+
+    def __unscrambled_state_has_already_been_visited(self):
+        return str(self.state) in self.unscrambled_cube_states
 
     def __switch_player(self):
         self.player = 1 ^ self.player
