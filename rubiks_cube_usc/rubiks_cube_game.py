@@ -28,14 +28,14 @@ class Game(AbstractGame):
 
         if self.state.is_solved():
             self.__log_winning_state()
-            reward = 1000
+            reward = 1
             is_game_finished = True
 
         if self.__has_game_exceeded_max_num_steps():
             reward = 0
             is_game_finished = True
         elif self.__is_a_cycle():
-            reward = -100000000
+            reward = -1
 
         return self.__cube_to_numpy_array(), reward, is_game_finished
 

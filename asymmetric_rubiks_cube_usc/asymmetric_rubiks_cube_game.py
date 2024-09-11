@@ -12,7 +12,7 @@ NUM_TO_UNSCRAMBLE = 40
 
 class Game(AbstractGame):
     def __init__(self, seed=None):
-        self.num_to_scramble = 20
+        self.num_to_scramble = 2
         self.__set_new_game_state()
 
     def step(self, action):
@@ -59,7 +59,6 @@ class Game(AbstractGame):
         return self.__cube_to_numpy_array(), reward, is_game_finished
 
     def reset(self):
-        self.num_to_scramble = random.randint(5, 200)
         if not self.state.is_solved():
             self.__log_failed_state()
         self.__set_new_game_state()
