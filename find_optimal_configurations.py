@@ -1,7 +1,7 @@
 import time
 import itertools
 from muzero import MuZero
-from games.rubiks_cube import MuZeroConfig
+from games.asymmetric_rubiks_cube import MuZeroConfig
 from dataclasses import dataclass
 
 
@@ -69,12 +69,14 @@ if __name__ == "__main__":
         update_config(muzero_config, config)
         time_taken = measure_training_time(muzero_config)
         results.append((config, time_taken))
+        best_config, best_time = min(results, key=lambda x: x[1])
+        print("Best Configuration So Far: ", best_config)
+        print("Time Taken:", best_time)
 
     # Find the best configuration
     best_config, best_time = min(results, key=lambda x: x[1])
 
-    print("Best Configuration:")
-    print(best_config)
+    print("Best Configuration: ", best_config)
     print("Time Taken:", best_time)
 
     # Print all results

@@ -7,3 +7,10 @@ rubik_cube==0.0.2
 seaborn==0.13.2
 torch==2.3.1
 tensorboard==2.13.0
+pip~=22.0.2
+wheel~=0.37.1
+pillow~=10.4.0
+cryptography~=3.4.8
+Jinja2~=3.1.4
+keyring~=23.5.0
+setuptools~=59.6.0

@@ -1,8 +1,9 @@
 import datetime
 import pathlib
 import torch
-from rubiks_cube_usc.constants import ACTIONS_RANGE
-
+from asymmetric_rubiks_cube.constants import ACTIONS_RANGE
+#TODO incredibly punish repeated states
+#TODO look up how to design rewards for chess, other games, general principles
 
 class MuZeroConfig:
     def __init__(self):
@@ -18,8 +19,8 @@ class MuZeroConfig:
     def set_self_play_properties(self):
         self.num_workers = 1  # Number of simultaneous threads/workers self-playing to feed the replay buffer
         self.selfplay_on_gpu = False
-        self.max_moves = 40  # Maximum number of moves if game is not finished before
-        self.num_simulations = 40  # Number of future moves self-simulated
+        self.max_moves = 240  # Maximum number of moves if game is not finished before
+        self.num_simulations = 20  # Number of future moves self-simulated
         self.discount = 0  # Chronological discount of the reward
         self.temperature_threshold = None  # Number of moves before dropping the temperature given by visit_softmax_temperature_fn to 0 (ie selecting the best action). If None, visit_softmax_temperature_fn is used every time
 
@@ -28,7 +29,7 @@ class MuZeroConfig:
             __file__).stem / datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
         self.results_path = results_path  # Path to store the model weights and TensorBoard logs
         self.save_model = True  # Save the checkpoint in results_path as model.checkpoint
-        self.training_steps = 100000  # Total number of training steps (ie weights update according to a batch)
+        self.training_steps = 1500000  # Total number of training steps (ie weights update according to a batch)
         self.batch_size = 64  # Number of parts of games to train on at each training step
         self.checkpoint_interval = 100  # Number of training steps before using the model for self-playing
         self.value_loss_weight = 0.25  # Scale the value loss to avoid overfitting of the value function, paper recommends 0.25 (See paper appendix Reanalyze)
@@ -38,11 +39,11 @@ class MuZeroConfig:
         self.momentum = 0.9  # Used only if optimizer is SGD
 
     def set_game_properties(self):
-        self.muzero_player = 0  # Turn Muzero begins to play (0: MuZero plays first, 1: MuZero plays second)
-        self.opponent = None  # Hard coded agent that MuZero faces to assess his progress in multiplayer games. It doesn't influence training. None, "random" or "expert" if implemented in the Game class
+        self.muzero_player = 1  # Turn Muzero begins to play (0: MuZero plays first, 1: MuZero plays second)
+        self.opponent = "self"  # Hard coded agent that MuZero faces to assess his progress in multiplayer games. It doesn't influence training. None, "random" or "expert" if implemented in the Game class
         self.observation_shape = (6, 3, 3)
         self.action_space = ACTIONS_RANGE
-        self.players = list(range(1))
+        self.players = list(range(2))
         self.stacked_observations = 0
 
     def set_networks(self):
