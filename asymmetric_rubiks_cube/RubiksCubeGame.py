@@ -2,7 +2,7 @@ from rubik.cube import Cube
 from asymmetric_rubiks_cube.Logger import Logger
 from asymmetric_rubiks_cube.Player import Player
 from asymmetric_rubiks_cube.constants import SOLVED_CUBE_STR, SCRAMBLER, UNSCRAMBLER, NUM_SCRAMBLE_STEPS, \
-    NUM_UNSCRAMBLE_STEPS, cube_to_numpy_array, SOLVED_REWARD
+    NUM_UNSCRAMBLE_STEPS, cube_to_numpy_array, SOLVED_REWARD, REPEATED_STATE_PENALTY
 
 
 class RubiksCubeGame:
@@ -38,6 +38,8 @@ class RubiksCubeGame:
             self.__set_reward_for_solved_early()
         elif self.__has_exceeded_num_steps():
             self.__set_game_over_reward_when_num_steps_exceeded()
+        if self.__get_current_player().has_player_repeated_state(self.state):
+            self.__set_game_over_reward(is_game_over=True, reward=REPEATED_STATE_PENALTY)
 
     def __set_reward_for_solved_early(self):
         if self.current_player == SCRAMBLER:

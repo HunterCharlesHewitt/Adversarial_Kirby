@@ -26,8 +26,8 @@ class Player:
         else:
             return step_num < 2 * NUM_SCRAMBLE_STEPS
 
-    def has_state_been_visited(self, state):
-        return str(state) in self.visited_states
+    def has_player_repeated_state(self, state):
+        return self.visited_states.count(str(state)) > 1
 
     def add_to_total_reward(self, reward):
         self.total_reward += reward

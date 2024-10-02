@@ -5,9 +5,10 @@ LEGAL_MOVES = ["L", "R", "U", "D", "F", "B", "Li", "Ri", "Ui", "Di", "Fi", "Bi"]
 ACTIONS_RANGE = list(range(len(LEGAL_MOVES)))
 SCRAMBLER = 0
 UNSCRAMBLER = 1
-NUM_SCRAMBLE_STEPS = 2
-NUM_UNSCRAMBLE_STEPS = 2
+NUM_SCRAMBLE_STEPS = 4
+NUM_UNSCRAMBLE_STEPS = 20
 SOLVED_REWARD = 1
+REPEATED_STATE_PENALTY = -1000
 
 def cube_to_numpy_array(state):
     c = "".join(str(state).split())
